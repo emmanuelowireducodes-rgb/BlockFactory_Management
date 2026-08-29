@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body { color: #172033; font-family: Arial, sans-serif; margin: 20px; }
+      form { display: grid; gap: 12px; }
+      label { display: grid; font-size: 13px; font-weight: 600; gap: 5px; }
+      input { border: 1px solid #cbd5e1; border-radius: 4px; font: inherit; padding: 8px; }
+      button { background: #0f766e; border: 0; border-radius: 4px; color: white; cursor: pointer; font: inherit; padding: 9px 12px; }
+      #message { font-size: 13px; line-height: 1.4; margin: 0; }
+      .error { color: #b42318; }
+      .success { color: #067647; }
+    </style>
+  </head>
+  <body>
+    <form id="provision-form">
+      <label>Full name<input id="name" required autocomplete="name"></label>
+      <label>Username<input id="username" required autocomplete="username"></label>
+      <label>Password<input id="password" type="password" minlength="12" required autocomplete="new-password"></label>
+      <p id="message">This can only create the first account while USERS is empty.</p>
+      <button id="submit" type="submit">Create Super Admin</button>
+    </form>
+    <script>
+      var form = document.getElementById('provision-form')
+      var message = document.getElementById('message')
+      var submit = document.getElementById('submit')
+
+      form.addEventListener('submit', function (event) {
+        event.preventDefault()
+        submit.disabled = true
+        message.className = ''
+        message.textContent = 'Provisioning account...'
+        google.script.run
+          .withSuccessHandler(function (user) {
+            document.getElementById('password').value = ''
+            message.className = 'success'
+            message.textContent = 'Super Admin created for ' + user.name + '. You can close this dialog.'
+          })
+          .withFailureHandler(function (error) {
+            document.getElementById('password').value = ''
+            submit.disabled = false
+            message.className = 'error'
+            message.textContent = error && error.message ? error.message : 'Provisioning failed.'
+          })
+          .provisionInitialSuperAdminFromDialog({
+            name: document.getElementById('name').value,
+            username: document.getElementById('username').value,
+            password: document.getElementById('password').value
+          })
+      })
+    </script>
+  </body>
+</html>
